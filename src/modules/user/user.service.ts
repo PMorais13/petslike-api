@@ -1,12 +1,19 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
-import { IPSERVER } from 'src/common/constants/aws';
+// import { IPSERVER } from 'src/common/constants/aws';
 
 @Injectable()
 export class RegisterService {
-  protected url = IPSERVER + 'users';
-  constructor(private readonly httpService: HttpService) {}
+  url = '';
+
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.url = this.configService.get<string>('DATABASE_URL') + '/users';
+  }
 
   async createUser(dto): Promise<any> {
     try {
@@ -20,6 +27,8 @@ export class RegisterService {
   }
 
   async getUser(): Promise<any> {
+    console.log(this.url);
+
     const response = await firstValueFrom(this.httpService.get(this.url));
 
     if (!Array.isArray(response.data)) {
@@ -27,6 +36,7 @@ export class RegisterService {
       return [];
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const result = response.data.map(({ passWord, ...item }) => item);
 
     console.log('Objeto após remoção:', result);
